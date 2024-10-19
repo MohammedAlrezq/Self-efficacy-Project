@@ -219,9 +219,52 @@ reverse_cols <- c ("CIO_SelfDepend",
 "SE_NotTryComplicated")
 
 schoolData[,reverse_cols] <- 5 - schoolData[,reverse_cols]
-str(schoolData)
-summary(schoolData)
+#str(schoolData)
+#summary(schoolData)
 ```
+
+
+10/19/2024
+```{r}
+################################filter 1#########################333
+names(school)
+
+
+school_less24<- subset.data.frame(schoolData, schoolData$Age<= 2)
+table(school_less24$Country)
+names(school_less24)
+
+# Rename Country to Region
+school_rename<- rename(school_less24,
+       Region= "Country")
+names(school_rename)
+
+table(school_rename$Region)
+
+
+###############################filter 2##########################333
+
+# Further filtiring the data based on age (less than 18 yrs only)
+
+names(school_model)
+str(school_model)
+head(school_model)
+table(school_model$Age)
+# filter datset based on age less than 18 yrs
+#school_model<- school_model[-c(14,7)]# remove age and religious/spirtuality
+school_rename<- school_rename[which(school_rename$Age == "1"),]
+
+# remove age column 
+school_rename<- school_rename[-c(14)]# remove age 
+ 
+
+school_rename$Region<- as.factor(school_rename$Region)
+school_rename$Gender<- as.factor(school_rename$Gender)
+
+names(school_rename)
+```
+
+
 
 
 #Grouping itmes to single construct based on the mean  of each row 
@@ -477,168 +520,56 @@ table(school_model$Region)
 ```
 
 
-# Use Cronbach’s Alpha to check the the items for each factor
+
+
+# Use Cronbach’s Alpha to check the the items for each factor (10/19/2024)
 ```{r}
+library(psych)
+names(school_rename)
 
-forgive<- schoolData[, c("Forgive_BrokenEngagement",
-                                      "Forgive_SecretDisclosure",
-                                      "Forgive_CousinArgument",
-                                      "Forgive_CurseSameReligion",
-                                      "Forgive_CurseDiffReligion",
-                                      "Forgive_Wall",
-                                      "Forgive_Rumor",
-                                      "Forgive_Loss", 
-                                      "Forgive_Car")]
+forgive <- alpha(school_rename[,c(8:15)])  
 
-CIO<- schoolData[, c( "CIO_PeerPrize",
-                                   "CIO_PeerWellbeing",
-                                   "CIO_Cooperate",
-                                   "CIO_Family",
-                                   "CIO_RespectGrpDecisions",
-                                   "CIO_SelfDepend",
-                                   "CIO_SelfDependMost",
-                                    "CIO_OwnThing",
-                                   "CIO_Identity",
-                                   "CIO_JobBetter" ,
-                                    "CIO_Competition", 
-                                   "CIO_BetterTense",
-                                   "CIO_PleasureTime", 
-                                   "CIO_ParentsChildren")]
-
-SE<- schoolData[, c("SE_NotTryComplicated",
-                                 "SE_AvoidDifficult",
-                                 "SE_NewGiveUp",
-                                 "SE_NotCapable",
-                                 "SE_DontHandle",
-                                 "SE_PlansCertain",
-                                 "SE_KeepTrying",
-                                 "SE_Unpleasant",
-                                 "SE_RightToWork",
-                                 "SE_TryHarder",
-                                 "SE_RarelyAchieve",
-                                 "SE_Insecure")]
-
-PS<- schoolData[, c("PS_ResultsThink",
-                                 "PS_GatherInfo",
-                                 "PS_IdentifyOptions",
-                                 "PS_ExpressThoughts",
-                                 "PS_GiveReasons",
-                                 "PS_InfoToSupport",
-                                 "PS_MoreThanOne",
-                                 "PS_PlanInfo",
-                                 "PS_SupportDecisions",
-                                 "PS_CompareIdeas",
-                                 "PS_MindOpen",
-                                 "PS_ListenIdeas")]
-
-MM<- schoolData[, c("MM_LifeMeaningful",
-                                              "MM_LifesPurpose",
-                                              "MM_FeelSignificant",
-                                              "MM_Mission",
-                                              "MM_LifeMeaning",
-                                              "MM_UnderstandLife",
-                                              "MM_Purpose",
-                                              "MM_LifeMeaningfulSense",
-                                              "MM_SatisfyingPurpose",
-                                                  "MM_NoPurpose")]
-                  
-
-# #"SB_DontBelong",
-SB<- schoolData[, c("SB_PartOfCommunity",
-                                 "SB_TeachersRespect",
-                                 "SB_TreatedRespect",
-                                "SB_AcceptanceHard",
-                                 "SB_NoticeGood",
-                                 "SB_ProudSchool",
-                                 "SB_LikeMe",
-                                 "SB_OpinionsSeriously",
-                                 "SB_TeachersInterested",
-                                 "SB_CanTalk",
-                                 "SB_PeopleFriendly",
-                                 "SB_Activities",
-                                 "SB_BeMyself",
-                                 "SB_GoodWork",
-                                 "SB_DifferentSchool",
-                                "SB_DontBelong",
-                                "SB_FeelDifferent",
-                                "SB_NotInterested")]
-
-RS<- schoolData[, c("RS_Religion",
-                                 "RS_Prayer",
-                                 "RS_FeelGod",
-                                 "RS_ReligionGrp",
-                                 "RS_DefiningYou")]
+CIO <- alpha(school_rename[,c(16:27, 29)]
+             #, check.keys = TRUE# within the code, we can run this check for code reverse, any variabels with negative sign then it is reversed
+             )  
 
 
-#""Gratitude_Time"was removed and alpha increased to 0.57
-Gratitude<- schoolData[, c( "Gratitude_Thankful",
-                                         "Gratitude_LongList",
-                                         "Gratitude_NotMuch",
-                                         "Gratitude_Variety" ,
-                                         "Gratitude_Appreciate"
-                                         )]
+SE <- alpha(school_rename[,c(30:41)])  
+
+
+PS <- alpha(school_rename[,c(42:53)])  
+
+MM <- alpha(school_rename[,c(54:63)])  
+
+SB <- alpha(school_rename[,c(64:81)])  
+
+SB <- alpha(school_rename[,c(64:81)])  
+
+RS <- alpha(school_rename[,c(82:86)])  
+
+Gratitude <- alpha(school_rename[,c(87:92)])  
+
+ER <- alpha(school_rename[,c(93:100)])  
+
+Empth <- alpha(school_rename[,c(101:107)])  
+                                  
+SR <- alpha(school_rename[,c(108:123)])  
 
 
 
- ER <- schoolData[, c("ER_NegativeThink",
-                      "ER_PositiveThink",
-                      "ER_ExpressPositive",
-                      "ER_StressCalm",
-                      "ER_PositiveChange",
-                      "ER_EmotionControl",
-                      "ER_LessNegative",
-                      "ER_NegativeExpress")]
-                                          
-#"Empathy_Waste" was removed and alpha increased to 60
- Empth <- schoolData[, c("Empathy_Perspective",
-                        "Empathy_TwoSides",
-                        "Empathy_Upset",
-                        "Empathy_Criticizing",
-                        "Empathy_Sides",
-                        "Empathy_Difficult")]
- 
- 
-                                                      
-
-SR<- schoolData[, c(  "SR_GoalSettingHard",
-                      "SR_GoalPlanTrouble", 
-                      "SR_Distracted",
-                      "SR_Trouble", 
-                      "SR_Decisions", 
-                      "SR_Change",
-                      "SR_Problems",
-                      "SR_Focus", 
-                      "SR_Mistakes",
-                      "SR_Goals",
-                      "SR_GoalPlan",
-                      "SR_Resolution",
-                      "SR_GoalProgress",
-                      "SR_Willlpower",
-                      "SR_MistakeOnce",
-                      "SR_MistakesLearn")]
-
-                  
-                 
-
-# Calculate Cronbach’s Alpha 
-#par(mfrow=c(3,4))
-alpha(forgive, check.keys = TRUE)$total[1]# 
-alpha(CIO, check.keys = TRUE)$total[1] # 
-alpha(SE, check.keys = TRUE)$total[1]# 
-alpha(PS, check.keys = TRUE)$total[1]# 
-alpha(MM, check.keys = TRUE)$total[1] #
-alpha(SB, check.keys = TRUE)$total[1]#
-alpha(RS, check.keys = TRUE)$total[1]#
-alpha(Gratitude, check.keys = TRUE)$total[1] # 
-alpha(ER, check.keys = TRUE)$total[1]#
-alpha(Empth, check.keys = TRUE)$total[1]# 
-alpha(SR, check.keys = TRUE)$total[1]# 
-
-#CIO HAD 0.24
-#alpha(CIO, check.keys = TRUE)
-
+      
 
 ```
+
+
+#combining items into a construct based on mean
+```{r}
+# Combine multiple items to create the construct using column indices
+data <- data %>%
+  mutate(Construct_A = rowMeans(select(., 1:3), na.rm = TRUE))
+```
+
+
 
 ```{r}
 library(ggplot2)# for correlqtion plot 
@@ -647,45 +578,8 @@ library(corrplot)
 # Corrplot source: https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
 ```
 
-#School_Continuse variabels/construct: this is to check the construct correlation 
-```{r}
-school_continuse_Variable<- select(school_model,1:11 )
-names(school_continuse_Variable)
 
-# Visualization fo the correlation 
-corPlot(school_continuse_Variable, cex = 0.8)
-pairs.panels(school_continuse_Variable, pch = 20)
-correlation_for_factor<- round(cor(school_continuse_Variable), 2)
-#write.csv(correlation_for_factor, "correlation matrix for factors.csv")
-
-#Source:https://r-coder.com/correlation-plot-r/#:~:text=Correlation%20plots%2C%20also%20known%20as,with%20different%20functions%20and%20packages.
-
-
-```
-
-# ploting 
-```{r}
-boxplot(school_continuse_Variable)
-str(school_continuse_Variable)
-
-# par(mfrow=c(2,2), mai=c(.6,.5,.2,.1))
-# for(i in c(2:18)){
-# plot(school_continuse_Variable [,i],school_continuse_Variable$Self.Efc, xlab=names(school_continuse_Variable)[i],ylab="Self-Efficacy", col=3, pch=20)
-#   
-#  plotting<-  school_continuse_Variable %>%
-#   ggplot( aes(x=school_continuse_Variable$Grat, y=school_continuse_Variable$Self.Efc, fill=school_continuse_Variable)) +
-#     geom_violin() +
-#     scale_fill_viridis(discrete = TRUE, alpha=0.6, option="A") +
-#     theme_ipsum() +
-#     theme(
-#       legend.position="none",
-#       plot.title = element_text(size=11)
-#     ) +
-#     ggtitle("Violin chart") +
-#     xlab("")
-#  plotting
-# }
-```
+ 
 
 # this is aqfter author feedback- 10/19/2024
 ```{r}
@@ -717,135 +611,6 @@ ggplot(data_long, aes(x = Value, y = Variable, fill = Gender)) +
 
 ```
 
-
-# Replaicng index in the data with text for demographic visulization 
-```{r}
-
-#Demo_schoo.data2 <- recode_factor(Demo_schoo.data, '0' = "Female", '1' = "male")
-library(forcats)
-library(tidyverse)
-library(dplyr)
-library(plyr)
-library(car)
-
-
-
-names(school_model)
-demographic_data<- select(school_model, 12:13)
-names(demographic_data)
-
-dempgraphic_std<- demographic_data %>%
-                   mutate(Gender = recode_factor(Gender, 
-                                         "0" = "Female", 
-                                         "1" = "Male"))
-
-
-# #dempgraphic_std<- dempgraphic_std %>% # age was eleiminated from the data after only inclduing 18 or below
-#                    mutate(Age = recode_factor(Age, 
-#                                        "1" = "Less than 18", 
-#                                        "2" = " 18_24"))
-                                       
-dempgraphic_std<- dempgraphic_std %>%
-                   mutate(Region = recode_factor(Region,
-                                          "1"=	"Ungrouped",
-                                          "2"	= "Southeast Asia",
-                                          "3"	= "Central Asia",
-                                          "4"= "MENA",
-                                          "5"= "Sub-Saharan Africa",
-                                          "0"= "South Asia"))
-
-
-
-
-plot(dempgraphic_std$Gender)
-gender.count<-table(dempgraphic_std$Gender)
-
-
-
-```
-
-#Visulaization for Dempgraphic Variables
-
-```{r}
-library(ggplot2)
-theme_set(theme_classic())
-
-# Histogram on a Categorical variable
-g1 <- ggplot(dempgraphic_std, aes(Region))
-g1 + geom_bar(aes(fill=Gender), width = 0.5) + 
-  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
-  labs(title="Gender Across Region")
-
-
-#Gender only visulization
-# Histogram on a Categorical variable
-
-ggplot(data = dempgraphic_std,  aes(x = Gender))+
-  geom_bar(color = 'red')
-
-
-```
-
-
-# Plotting IVs against DV (self-efficacy)
-```{r}
-#####
-par(mfrow=c(3,4))
-school_model %>% 
-  ggplot(
-    aes(x = CIO, 
-        y= Self.Efc))+
-  geom_point()+
-  stat_smooth(se = 0, method = 'lm')
-school_model %>% 
-  ggplot(
-    aes(x = Grat, 
-        y= Self.Efc))+
-  geom_point()+
-  stat_smooth(se = 0, method = 'lm')
-school_model %>% 
-  ggplot(
-    aes(x = MM, 
-        y= Self.Efc))+
-  geom_point()+
-  stat_smooth(se = 0, method = 'lm')   
-school_model %>% 
-  ggplot(
-    aes(x = Self.Bel, 
-        y= Self.Efc))+
-  geom_point()+
-  stat_smooth(se = 0, method = 'lm')
-school_model %>% 
-  ggplot(
-    aes(x = Forg, 
-        y= Self.Efc))+
-  geom_point()+
-  stat_smooth(se = 0, method = 'lm')
-school_model %>% 
-  ggplot(
-    aes(x = Self_Reg, 
-        y= Self.Efc))+
-  geom_point()+
-  stat_smooth(se = 0, method = 'lm')
-school_model %>% 
-  ggplot(
-    aes(x = ER, 
-        y= Self.Efc))+
-  geom_point()+
-  stat_smooth(se = 0, method = 'lm')
-school_model %>% 
-  ggplot(
-    aes(x = EMP, 
-        y= Self.Efc))+
-  geom_point()+
-  stat_smooth(se = 0, method = 'lm')
-school_model %>% 
-  ggplot(
-    aes(x = PR.S, 
-        y= Self.Efc))+
-  geom_point()+
-  stat_smooth(se = 0, method = 'lm')
-```
 
 
 ```{r, include=FALSE}
