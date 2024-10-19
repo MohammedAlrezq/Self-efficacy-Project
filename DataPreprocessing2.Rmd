@@ -3,6 +3,8 @@ title: "DataPreprocessing2"
 author: "Mohammed Alrezq"
 date: "2024-10-19"
 output: html_document
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -92,14 +94,571 @@ table(data$Source)
 
 
 ```{r}
+library(naniar)# used to replace missing values (e.g. 99,88, etc) with NAs 
+# summary package for descriptive stat
+#library(summarytools)
+```
+
+
+
+# High school students: selection and NA investigation 
+```{r}
+school_student<- data[which(data$Source == "1"),]# select school students only 
+names(school_student)
+summary(school_student)
+
+#The rest of the dataset (W/O Religion variable)
+school_student_rest<- select(school_student,c(1:10, 12:160))
+
+# define NAs values for the rest of the dataset
+NA_values<- c("99", "88", "9")
+school_studnet_rest_NA<- school_student_rest %>%
+  replace_with_na_all(condition = ~.x %in% NA_values)
+
+# Religion variable 
+school_studnt_religion<- select(school_student, 11)
+#dfSummary(school_studnt_religion)
+school_studnt_religion_NA<- school_studnt_religion %>% replace_with_na(replace = list(Religion = 99))
+summary(school_studnt_religion_NA)
+
+
+# Combine the entire dataset with NAs
+school_studnet_NA<- cbind(school_studnt_religion_NA, school_studnet_rest_NA)
+names(school_studnet_NA)
+
+
+
+sapply(school_studnet_NA, function(X) sum(is.na(X)))  # count na per variable
+
+most_missing <- select(school_studnet_NA, c(1:20)) # visualizing the NA for the variable that has missing more than 10% 
+gg_miss_var(most_missing, show_pct = TRUE)
+```
+
+
+#Remove  variables for teachers and univ. students and only keep school studnets variables 
+```{r}
+names(school_studnet_NA)
+school_student_Variabler<- school_studnet_NA[c(-2, -5:-6, -10:-11,-14:-16, -97:-123)]# deleted:source names, resp. ID, school type, degree year, education, relationship status, children, work experience, and other construct not related to student 
+
+names(school_student_Variabler)
+
+most_missing_schoolStudent <- select(school_student_Variabler, c(1:20)) # visualizing the NA for the variable that has missing more than 10% 
+gg_miss_var(most_missing_schoolStudent, show_pct = TRUE)
+
+# Remove Grade and use age as an alternative. also, remove all other NAs in countery, ethincity, etc 
+
+school_student_cleaning1 <- school_student_Variabler[c(-6)]
+names(school_student_cleaning1)
+
+# Visulize after removing Grade 
+most_missing_clean1 <- select(school_student_cleaning1, c(1:35)) # visualizing the NA for the variable that has missing more than 10% 
+gg_miss_var(most_missing_clean1, show_pct = TRUE)
+
+```
+
+
+#Omit NAs from school student data
+```{r}
+school_student_cleaning2 <- na.omit(school_student_cleaning1)
+#summary(school_student_cleaning2)
+
+# to check which row and how many obs.  =8 for the two variables with 8
+which(school_student_cleaning2$SR_Problems==8)
+which(school_student_cleaning2$SB_BeMyself==8)
+
+# remove "na = 8" from SB.bemyself, and SR.problems
+
+schoolData<- filter(school_student_cleaning2, 
+                  !SR_Problems==8, 
+                  !SB_BeMyself==8)
+
+```
+
+
+```{r}
+#write.csv(schoolData, "school_data.csv")
+```
+
+
+# revers coding for some CIO Items
+```{r}
+
+reverse_cols <- c ("CIO_SelfDepend", 
+                   "CIO_SelfDependMost",
+                   "CIO_OwnThing",
+                   "CIO_Identity",
+                   "CIO_JobBetter",
+                   "CIO_Competition",
+                   "CIO_BetterTense",
+                   
+"Gratitude_NotMuch",
+"Gratitude_Time",
+"Empathy_Waste",
+"Empathy_Difficult",
+"SR_GoalSettingHard",
+"SR_GoalPlanTrouble",
+"SR_Distracted",
+"SR_Trouble",
+"SR_Decisions",
+"SR_Change",
+"SR_Problems",
+"SR_Focus",
+"SR_Mistakes",
+"SB_DifferentSchool",
+"SB_NotInterested",
+"SB_FeelDifferent",
+"SB_DontBelong",
+"SB_AcceptanceHard",
+"MM_NoPurpose",
+"SE_Insecure",
+"SE_DontHandle",
+"SE_NotCapable",
+"SE_RarelyAchieve",
+"SE_NewGiveUp",
+"SE_AvoidDifficult",
+"SE_NotTryComplicated")
+
+schoolData[,reverse_cols] <- 5 - schoolData[,reverse_cols]
+str(schoolData)
+summary(schoolData)
+```
+
+
+#Grouping itmes to single construct based on the mean  of each row 
+
+```{r}
+#package for correlation 
+#install.packages("GGally")
+library(GGally)
+names(schoolData)
+library(corrplot)
+
+#SB
+SB_data<- select(schoolData,c(65:82))
+str(SB_data)
+
+ggcorr(SB_data, method = c("everything", "pearson"))
+corPlot(SB_data, cex = 0.5)
+
+SB_mean<- SB_data %>% as_tibble() %>% 
+   mutate(mean_SB = rowMeans(across(where(is.numeric))))
+SB_mean
+
+#PS
+ps_data<- select(schoolData,c(43:54))
+str(ps_data)
+corPlot(ps_data, cex = 0.5)
+ps_mean<- ps_data %>% as_tibble() %>% 
+   mutate(mean_ps = rowMeans(across(where(is.numeric))))
+ps_mean
+
+#ER
+ER_data<- select(schoolData,c(94:101))
+corPlot(ER_data, cex = 0.5)
+
+ER_mean<- ER_data %>% as_tibble() %>% 
+   mutate(mean_ER = rowMeans(across(where(is.numeric))))
+ER_mean
+
+#Empathy 
+Empathy_data <-  select(schoolData,c(102:108))
+corPlot(Empathy_data, cex = 0.5)
+
+Empathy_mean<- Empathy_data %>% as_tibble() %>% 
+   mutate(mean_Empathy = rowMeans(across(where(is.numeric))))
+Empathy_mean
+
+#RS
+RS_data<- select(schoolData,c(83:87))
+corPlot(RS_data, cex = 0.5)
+
+RS_mean<- RS_data %>% as_tibble() %>% 
+   mutate(mean_RS = rowMeans(across(where(is.numeric))))
+RS_mean
+
+#SR
+SR_data<- select(schoolData,c(109:124))
+corPlot(SR_data, cex = 0.5)
+
+SR_mean<- SR_data %>% as_tibble() %>% 
+   mutate(mean_SR = rowMeans(across(where(is.numeric))))
+SR_mean
+
+#Forg
+forgive_data<- select(schoolData,c(8:16))
+corPlot(forgive_data, cex = 0.5)
+
+forgive_mean<- forgive_data %>% as_tibble() %>% 
+   mutate(mean_forgive = rowMeans(across(where(is.numeric))))
+forgive_mean
+
+#MM
+MM_data<- select(schoolData,c(55:64))
+corPlot(MM_data, cex = 0.5)
+
+MM_mean<- MM_data %>% as_tibble() %>% 
+   mutate(mean_MM = rowMeans(across(where(is.numeric))))
+MM_mean
+#SE
+SE_data<- select(schoolData,c(31:42))
+corPlot(SE_data, cex = 0.5)
+
+SE_mean<- SE_data %>% as_tibble() %>% 
+   mutate(mean_SE = rowMeans(across(where(is.numeric))))
+SE_mean
+
+#Gratidute 
+gratitude_data<- select(schoolData,c(88:93))
+corPlot(gratitude_data, cex = 0.5)
+
+gratitude_mean<- gratitude_data %>% as_tibble() %>% 
+   mutate(mean_gratitude = rowMeans(across(where(is.numeric))))
+gratitude_mean
+
+#CIO
+CIO_data<- select(schoolData,c(17:30))
+corPlot(CIO_data, cex = 0.5)
+
+CIO_mean<- CIO_data %>% as_tibble() %>% 
+   mutate(mean_CIO = rowMeans(across(where(is.numeric))))
+
+
+```
+
+
+#Combined the mean into one dataset 
+```{r}
+
+mean_school.Data<- cbind(CIO_mean$mean_CIO, gratitude_mean$mean_gratitude,MM_mean$mean_MM, SE_mean$mean_SE, forgive_mean$mean_forgive, SR_mean$mean_SR, RS_mean$mean_RS,ER_mean$mean_ER,Empathy_mean$mean_Empathy, ps_mean$mean_ps, SB_mean$mean_SB)
+
+mean_school.Data <- as.data.frame(mean_school.Data)
+
+```
+
+#Rename variables/construct
+```{r}
+names(mean_school.Data)
+
+mean_school.Data<- rename(mean_school.Data,
+       CIO= "V1",
+       GRAT= "V2",
+       MEANMK= "V3",
+       SEFF= "V4",
+       FORG= "V5",
+       SREG= "V6",
+       RELSPIR = "V7",
+       EMOREG= "V8", 
+       EMP= "V9",
+       PSOLV= "V10",
+       SOB="V11") 
+names(mean_school.Data)
+
+
+```
+ 
+# Final data for modeling 
+```{r}
+
+#add deographic data 
+names(schoolData)
+Demo_schoo.data<- select(schoolData, c(3:5))
+names(Demo_schoo.data)
+ 
+school <- cbind (mean_school.Data, Demo_schoo.data)# the entire data set (including demographic and construct)
+str(school)
+```
+
+
+#Remove participants older than 24 years 
+```{r}
+names(school)
+
+
+school_less24<- subset.data.frame(school, school$Age <= 2)
+table(school_less24$Country)
+names(school_less24)
+
+# Rename Country to Region
+school_rename<- rename(school_less24,
+       Region= "Country")
+names(school_rename)
+
+table(school_rename$Region)
+
+```
+
+
+# Recoding region for demographic data in the entire data set
+```{r}
+library(tidyverse)
+#the below code did not run on 06/14/2024 and i used the code under it instead but i need to further check why recode fucntion did not work
+# school_recoding <- school_rename %>%
+#                    mutate(Region = recode(Region, 
+#                                           "15" = 1,
+#                                           "1" = 1,
+#                                           "14" = 2,
+#                                           "2"= 2,
+#                                           "4"= 3,
+#                                           "7" = 3, 
+#                                           "5" = 4,
+#                                           "13" = 4,
+#                                           "6" = 5,
+#                                           "11"= 5,
+#                                           "12" = 5, 
+#                                           "8" = 0,
+#                                           "10"= 0))
+# 
+# 
+# 
+# names(school_recoding)
+# table(school_recoding$Region)
+
+
+# The belwo code for recoding Region values was repalced by above code in 06/14/2024
+school_recoding <- school_rename %>%
+  mutate(Region = case_when(
+    Region %in% c("15", "1") ~ 1,
+    Region %in% c("14", "2") ~ 2,
+    Region %in% c("4", "7") ~ 3,
+    Region %in% c("5", "13") ~ 4,
+    Region %in% c("6", "11", "12") ~ 5,
+    Region %in% c("8", "10") ~ 0,
+    TRUE ~ as.numeric(Region)  # Default case if none of the above match
+  ))
+
+
+
+
+
+
+```
+
+
+# Remove demographic varibales as suggested by stakeholder 
+```{r}
+
+
+school_model<- (school_recoding)
+names(school_model)
+str(school_model)
+```
+#Variable visulization after taking mean  
+```{r}
+str(school_model)
+par(mfrow=c(2,2))
+hist(school_model$CIO)
+hist(school_model$GRAT)
+hist(school_model$MEANMK)
+hist(school_model$SEFF)
+hist(school_model$FORG)
+hist(school_model$SREG)
+hist(school_model$RELSPIR)
+hist(school_model$EMOREG)
+hist(school_model$EMP)
+hist(school_model$PSOLV)
+hist(school_model$SOB)
+
+
+# Summary statistics for all variables table 
+#Source:https://cran.r-project.org/web/packages/vtable/vignettes/sumtable.html
+library(vtable)
+#st(school_model)
+
+sumtable(school_model,vars = c('CIO','Grat','MM','Self.Efc','Self_Reg', 'Relg.Spit','ER','EMP','PR.S', 'Self.Bel', 'Forg'),
+         summ=c('notNA(x)',
+                'mean(x)',
+                'median(x)',
+                'sd(x)',
+                'min(x)',
+                'max(x)'))
+table(school_model$Region)
+
+
+```
+
+
+# Use Cronbach’s Alpha to check the the items for each factor
+```{r}
+
+forgive<- schoolData[, c("Forgive_BrokenEngagement",
+                                      "Forgive_SecretDisclosure",
+                                      "Forgive_CousinArgument",
+                                      "Forgive_CurseSameReligion",
+                                      "Forgive_CurseDiffReligion",
+                                      "Forgive_Wall",
+                                      "Forgive_Rumor",
+                                      "Forgive_Loss", 
+                                      "Forgive_Car")]
+
+CIO<- schoolData[, c( "CIO_PeerPrize",
+                                   "CIO_PeerWellbeing",
+                                   "CIO_Cooperate",
+                                   "CIO_Family",
+                                   "CIO_RespectGrpDecisions",
+                                   "CIO_SelfDepend",
+                                   "CIO_SelfDependMost",
+                                    "CIO_OwnThing",
+                                   "CIO_Identity",
+                                   "CIO_JobBetter" ,
+                                    "CIO_Competition", 
+                                   "CIO_BetterTense",
+                                   "CIO_PleasureTime", 
+                                   "CIO_ParentsChildren")]
+
+SE<- schoolData[, c("SE_NotTryComplicated",
+                                 "SE_AvoidDifficult",
+                                 "SE_NewGiveUp",
+                                 "SE_NotCapable",
+                                 "SE_DontHandle",
+                                 "SE_PlansCertain",
+                                 "SE_KeepTrying",
+                                 "SE_Unpleasant",
+                                 "SE_RightToWork",
+                                 "SE_TryHarder",
+                                 "SE_RarelyAchieve",
+                                 "SE_Insecure")]
+
+PS<- schoolData[, c("PS_ResultsThink",
+                                 "PS_GatherInfo",
+                                 "PS_IdentifyOptions",
+                                 "PS_ExpressThoughts",
+                                 "PS_GiveReasons",
+                                 "PS_InfoToSupport",
+                                 "PS_MoreThanOne",
+                                 "PS_PlanInfo",
+                                 "PS_SupportDecisions",
+                                 "PS_CompareIdeas",
+                                 "PS_MindOpen",
+                                 "PS_ListenIdeas")]
+
+MM<- schoolData[, c("MM_LifeMeaningful",
+                                              "MM_LifesPurpose",
+                                              "MM_FeelSignificant",
+                                              "MM_Mission",
+                                              "MM_LifeMeaning",
+                                              "MM_UnderstandLife",
+                                              "MM_Purpose",
+                                              "MM_LifeMeaningfulSense",
+                                              "MM_SatisfyingPurpose",
+                                                  "MM_NoPurpose")]
+                  
+
+# #"SB_DontBelong",
+SB<- schoolData[, c("SB_PartOfCommunity",
+                                 "SB_TeachersRespect",
+                                 "SB_TreatedRespect",
+                                "SB_AcceptanceHard",
+                                 "SB_NoticeGood",
+                                 "SB_ProudSchool",
+                                 "SB_LikeMe",
+                                 "SB_OpinionsSeriously",
+                                 "SB_TeachersInterested",
+                                 "SB_CanTalk",
+                                 "SB_PeopleFriendly",
+                                 "SB_Activities",
+                                 "SB_BeMyself",
+                                 "SB_GoodWork",
+                                 "SB_DifferentSchool",
+                                "SB_DontBelong",
+                                "SB_FeelDifferent",
+                                "SB_NotInterested")]
+
+RS<- schoolData[, c("RS_Religion",
+                                 "RS_Prayer",
+                                 "RS_FeelGod",
+                                 "RS_ReligionGrp",
+                                 "RS_DefiningYou")]
+
+
+#""Gratitude_Time"was removed and alpha increased to 0.57
+Gratitude<- schoolData[, c( "Gratitude_Thankful",
+                                         "Gratitude_LongList",
+                                         "Gratitude_NotMuch",
+                                         "Gratitude_Variety" ,
+                                         "Gratitude_Appreciate"
+                                         )]
+
+
+
+ ER <- schoolData[, c("ER_NegativeThink",
+                      "ER_PositiveThink",
+                      "ER_ExpressPositive",
+                      "ER_StressCalm",
+                      "ER_PositiveChange",
+                      "ER_EmotionControl",
+                      "ER_LessNegative",
+                      "ER_NegativeExpress")]
+                                          
+#"Empathy_Waste" was removed and alpha increased to 60
+ Empth <- schoolData[, c("Empathy_Perspective",
+                        "Empathy_TwoSides",
+                        "Empathy_Upset",
+                        "Empathy_Criticizing",
+                        "Empathy_Sides",
+                        "Empathy_Difficult")]
+ 
+ 
+                                                      
+
+SR<- schoolData[, c(  "SR_GoalSettingHard",
+                      "SR_GoalPlanTrouble", 
+                      "SR_Distracted",
+                      "SR_Trouble", 
+                      "SR_Decisions", 
+                      "SR_Change",
+                      "SR_Problems",
+                      "SR_Focus", 
+                      "SR_Mistakes",
+                      "SR_Goals",
+                      "SR_GoalPlan",
+                      "SR_Resolution",
+                      "SR_GoalProgress",
+                      "SR_Willlpower",
+                      "SR_MistakeOnce",
+                      "SR_MistakesLearn")]
+
+                  
+                 
+
+# Calculate Cronbach’s Alpha 
+#par(mfrow=c(3,4))
+alpha(forgive, check.keys = TRUE)$total[1]# 
+alpha(CIO, check.keys = TRUE)$total[1] # 
+alpha(SE, check.keys = TRUE)$total[1]# 
+alpha(PS, check.keys = TRUE)$total[1]# 
+alpha(MM, check.keys = TRUE)$total[1] #
+alpha(SB, check.keys = TRUE)$total[1]#
+alpha(RS, check.keys = TRUE)$total[1]#
+alpha(Gratitude, check.keys = TRUE)$total[1] # 
+alpha(ER, check.keys = TRUE)$total[1]#
+alpha(Empth, check.keys = TRUE)$total[1]# 
+alpha(SR, check.keys = TRUE)$total[1]# 
+
+#CIO HAD 0.24
+#alpha(CIO, check.keys = TRUE)
+
 
 ```
 
 ```{r}
-
+library(ggplot2)# for correlqtion plot 
+library(ggExtra)
+library(corrplot)
+# Corrplot source: https://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html
 ```
 
+#School_Continuse variabels/construct: this is to check the construct correlation 
 ```{r}
+school_continuse_Variable<- select(school_model,1:11 )
+names(school_continuse_Variable)
+
+# Visualization fo the correlation 
+corPlot(school_continuse_Variable, cex = 0.8)
+pairs.panels(school_continuse_Variable, pch = 20)
+correlation_for_factor<- round(cor(school_continuse_Variable), 2)
+#write.csv(correlation_for_factor, "correlation matrix for factors.csv")
+
+#Source:https://r-coder.com/correlation-plot-r/#:~:text=Correlation%20plots%2C%20also%20known%20as,with%20different%20functions%20and%20packages.
+
 
 ```
-
