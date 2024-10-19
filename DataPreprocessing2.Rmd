@@ -662,3 +662,251 @@ correlation_for_factor<- round(cor(school_continuse_Variable), 2)
 
 
 ```
+
+# ploting 
+```{r}
+boxplot(school_continuse_Variable)
+str(school_continuse_Variable)
+
+# par(mfrow=c(2,2), mai=c(.6,.5,.2,.1))
+# for(i in c(2:18)){
+# plot(school_continuse_Variable [,i],school_continuse_Variable$Self.Efc, xlab=names(school_continuse_Variable)[i],ylab="Self-Efficacy", col=3, pch=20)
+#   
+#  plotting<-  school_continuse_Variable %>%
+#   ggplot( aes(x=school_continuse_Variable$Grat, y=school_continuse_Variable$Self.Efc, fill=school_continuse_Variable)) +
+#     geom_violin() +
+#     scale_fill_viridis(discrete = TRUE, alpha=0.6, option="A") +
+#     theme_ipsum() +
+#     theme(
+#       legend.position="none",
+#       plot.title = element_text(size=11)
+#     ) +
+#     ggtitle("Violin chart") +
+#     xlab("")
+#  plotting
+# }
+```
+
+# this is aqfter author feedback- 10/19/2024
+```{r}
+boxplot(school_model)
+names(school_model)
+school_model_revision <- school_model |> 
+  select(-Region)
+
+# Load the required libraries
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+
+# Convert data to long format
+data_long <- school_model_revision %>%
+  pivot_longer(cols = -Gender, names_to = "Variable", values_to = "Value")
+
+# Create the boxplot
+ggplot(data_long, aes(x = Value, y = Variable, fill = Gender)) +
+  geom_boxplot() +
+  facet_wrap(~ Gender, ncol = 2) +
+  labs(
+       x = "Scale",
+       y = "Variables") +
+  scale_fill_manual(values = c("0" = "Female", "1" = "Male"), 
+                    labels = c("0" = "Female", "1" = "Male")) +
+  theme_minimal()
+
+```
+
+
+# Replaicng index in the data with text for demographic visulization 
+```{r}
+
+#Demo_schoo.data2 <- recode_factor(Demo_schoo.data, '0' = "Female", '1' = "male")
+library(forcats)
+library(tidyverse)
+library(dplyr)
+library(plyr)
+library(car)
+
+
+
+names(school_model)
+demographic_data<- select(school_model, 12:13)
+names(demographic_data)
+
+dempgraphic_std<- demographic_data %>%
+                   mutate(Gender = recode_factor(Gender, 
+                                         "0" = "Female", 
+                                         "1" = "Male"))
+
+
+# #dempgraphic_std<- dempgraphic_std %>% # age was eleiminated from the data after only inclduing 18 or below
+#                    mutate(Age = recode_factor(Age, 
+#                                        "1" = "Less than 18", 
+#                                        "2" = " 18_24"))
+                                       
+dempgraphic_std<- dempgraphic_std %>%
+                   mutate(Region = recode_factor(Region,
+                                          "1"=	"Ungrouped",
+                                          "2"	= "Southeast Asia",
+                                          "3"	= "Central Asia",
+                                          "4"= "MENA",
+                                          "5"= "Sub-Saharan Africa",
+                                          "0"= "South Asia"))
+
+
+
+
+plot(dempgraphic_std$Gender)
+gender.count<-table(dempgraphic_std$Gender)
+
+
+
+```
+
+#Visulaization for Dempgraphic Variables
+
+```{r}
+library(ggplot2)
+theme_set(theme_classic())
+
+# Histogram on a Categorical variable
+g1 <- ggplot(dempgraphic_std, aes(Region))
+g1 + geom_bar(aes(fill=Gender), width = 0.5) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(title="Gender Across Region")
+
+
+#Gender only visulization
+# Histogram on a Categorical variable
+
+ggplot(data = dempgraphic_std,  aes(x = Gender))+
+  geom_bar(color = 'red')
+
+
+```
+
+
+# Plotting IVs against DV (self-efficacy)
+```{r}
+#####
+par(mfrow=c(3,4))
+school_model %>% 
+  ggplot(
+    aes(x = CIO, 
+        y= Self.Efc))+
+  geom_point()+
+  stat_smooth(se = 0, method = 'lm')
+school_model %>% 
+  ggplot(
+    aes(x = Grat, 
+        y= Self.Efc))+
+  geom_point()+
+  stat_smooth(se = 0, method = 'lm')
+school_model %>% 
+  ggplot(
+    aes(x = MM, 
+        y= Self.Efc))+
+  geom_point()+
+  stat_smooth(se = 0, method = 'lm')   
+school_model %>% 
+  ggplot(
+    aes(x = Self.Bel, 
+        y= Self.Efc))+
+  geom_point()+
+  stat_smooth(se = 0, method = 'lm')
+school_model %>% 
+  ggplot(
+    aes(x = Forg, 
+        y= Self.Efc))+
+  geom_point()+
+  stat_smooth(se = 0, method = 'lm')
+school_model %>% 
+  ggplot(
+    aes(x = Self_Reg, 
+        y= Self.Efc))+
+  geom_point()+
+  stat_smooth(se = 0, method = 'lm')
+school_model %>% 
+  ggplot(
+    aes(x = ER, 
+        y= Self.Efc))+
+  geom_point()+
+  stat_smooth(se = 0, method = 'lm')
+school_model %>% 
+  ggplot(
+    aes(x = EMP, 
+        y= Self.Efc))+
+  geom_point()+
+  stat_smooth(se = 0, method = 'lm')
+school_model %>% 
+  ggplot(
+    aes(x = PR.S, 
+        y= Self.Efc))+
+  geom_point()+
+  stat_smooth(se = 0, method = 'lm')
+```
+
+
+```{r, include=FALSE}
+library(mlbench)
+library(caret)# an aggregator package for performing many machine learning models
+library(e1071)
+library(lime)
+
+library(rsample)      # data splitting 
+
+library(ranger)       # a faster implementation of randomForest
+library(h2o)          # an extremely fast java-based platform
+library(rsq)
+```
+
+# Further filtiring the data based on age (less than 18 yrs only)
+```{r}
+names(school_model)
+str(school_model)
+head(school_model)
+table(school_model$Age)
+# filter datset based on age less than 18 yrs
+#school_model<- school_model[-c(14,7)]# remove age and religious/spirtuality
+school_model<- school_model[which(school_model$Age == "1"),]
+
+# remove age column 
+school_model<- school_model[-c(14)]# remove age 
+ 
+
+school_model$Region<- as.factor(school_model$Region)
+school_model$Gender<- as.factor(school_model$Gender)
+```
+
+
+# Split data for regression 
+```{r}
+school_modelReg<- school_model# to make the name of the data sepcific for regression 
+str(school_modelReg)
+
+set.seed(12346)
+ind <- sample(2, nrow(school_modelReg), replace = T, prob = c(0.8, 0.2))
+train_reg <- school_modelReg[ind == 1,]
+test_reg <- school_modelReg[ind == 2,]
+
+
+```
+
+#Package used for regression 
+```{r, include=FALSE}
+library(randomForest)
+
+library(DAAG)
+library(MASS)
+library(compositions)
+
+library(car)
+library(PerformanceAnalytics)
+library(olsrr)# to run all possible soltuions for regression: forward, backword, both
+library(performance)# to cehkc linear regression assumption 
+library(glmnet)# for lasso regression 
+install.packages("glmnet", repos = "http://cran.us.r-project.org")
+```
+
+
