@@ -1,3 +1,16 @@
+---
+title: "DataPreprocessing2"
+author: "Mohammed Alrezq"
+date: "2024-10-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Libraries 
+```{r}
 #install.packages("tidyverse")
 library(tidyverse)
 #install.packages("cli")
@@ -17,11 +30,17 @@ library(lavaanPlot)
 library(semPlot)# also use to build graph for CFA, and SEM
 library(caret)
 
+```
+
+
+```{r}
 #########Load the data ######################
 
 data <- read.csv("AEMS-2019.csv")
+```
 
 
+```{r}
 ###################Themes
 plotTheme <- function() {
   theme(
@@ -40,8 +59,11 @@ plotTheme <- function() {
     axis.line = element_blank()
   )
 }
+```
 
 
+
+```{r}
 # Exploratory Data Analysis 
 
 #describe(data)
@@ -66,6 +88,18 @@ ggplot(data, aes(x=Source))+
     
   )
 table(data$Source)
+```
 
 
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
 
