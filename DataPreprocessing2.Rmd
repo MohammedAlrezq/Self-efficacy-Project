@@ -105,7 +105,7 @@ library(naniar)# used to replace missing values (e.g. 99,88, etc) with NAs
 ```{r}
 school_student<- data[which(data$Source == "1"),]# select school students only 
 names(school_student)
-summary(school_student)
+#summary(school_student)
 
 #The rest of the dataset (W/O Religion variable)
 school_student_rest<- select(school_student,c(1:10, 12:160))
@@ -227,7 +227,7 @@ schoolData[,reverse_cols] <- 5 - schoolData[,reverse_cols]
 10/19/2024
 ```{r}
 ################################filter 1#########################333
-names(school)
+
 
 
 school_less24<- subset.data.frame(schoolData, schoolData$Age<= 2)
@@ -365,6 +365,42 @@ corPlot(CIO_data, cex = 0.5)
 CIO_mean<- CIO_data %>% as_tibble() %>% 
    mutate(mean_CIO = rowMeans(across(where(is.numeric))))
 
+###########################10/21/2024######
+# Define groups of column indices for each construct
+constructs <- list(
+  forgive = 8:15,  # Columns 1 to 4 represent items for Construct A
+  CIO = 16:29,  # Columns 5 to 7 represent items for Construct B
+  SE = 30:41,  # Columns 8 to 10 represent items for Construct C
+  PS = 42:53,  # Columns 8 to 10 represent items for Construct C
+  MM = 54:63,  # Columns 8 to 10 represent items for Construct C
+  SB = 64:81,  # Columns 8 to 10 represent items for Construct C
+  RS = 82:86,  # Columns 8 to 10 represent items for Construct C
+  Gratitude = 87:92,  # Columns 8 to 10 represent items for Construct C
+  ER = 93:100,  # Columns 8 to 10 represent items for Construct C
+  Empth = 101:107,  # Columns 8 to 10 represent items for Construct C
+  SR = 108:123  # Columns 8 to 10 represent items for Construct C
+
+)
+
+# Use mutate to create new combined variables based on the constructs
+SCHOOLModel2 <- data %>%
+  mutate(
+    forgive = rowMeans(select(., constructs$forgive), na.rm = TRUE),
+    CIO = rowMeans(select(., constructs$CIO), na.rm = TRUE),
+    SE = rowMeans(select(., constructs$SE), na.rm = TRUE),
+    PS = rowMeans(select(., constructs$PS), na.rm = TRUE),
+    MM = rowMeans(select(., constructs$MM), na.rm = TRUE),
+    SB = rowMeans(select(., constructs$SB), na.rm = TRUE),
+    RS = rowMeans(select(., constructs$RS), na.rm = TRUE),
+    ER = rowMeans(select(., constructs$ER), na.rm = TRUE),
+    Empth = rowMeans(select(., constructs$Empth), na.rm = TRUE),
+    SR = rowMeans(select(., constructs$SR), na.rm = TRUE),
+
+    
+  )
+
+
+names(SCHOOLModel2)
 
 ```
 
@@ -543,7 +579,7 @@ MM <- alpha(school_rename[,c(54:63)])
 
 SB <- alpha(school_rename[,c(64:81)])  
 
-SB <- alpha(school_rename[,c(64:81)])  
+ 
 
 RS <- alpha(school_rename[,c(82:86)])  
 
